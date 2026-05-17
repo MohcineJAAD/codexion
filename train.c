@@ -162,22 +162,57 @@
 // }
 
 // Exercise 4: Create 5 threads, each receives an int id (1–5). Each prints "Coder [id] started". Join all. Run multiple times.
+// #include <stdio.h>
+// #include <pthread.h>
+// void *routine(void *nbr)
+// {
+// 	printf("Coder [%d] started\n", *((int *)nbr));
+// 	return NULL;
+// }
+
+// int main()
+// {
+// 	pthread_t	threads[5];
+// 	int			ids[5];
+// 	for (int i = 0; i < 5; i++)
+// 	{
+// 		ids[i] = i + 1;
+// 		pthread_create(&threads[i], NULL, routine, &ids[i]);
+// 	}
+// 	for (int i = 0; i < 5; i++)
+// 	{
+// 		pthread_join(threads[i], NULL);
+// 	}
+// }
+
+// visualisation the problem of concurency
 #include <stdio.h>
+#include <unistd.h>
 #include <pthread.h>
-void *routine(void *nbr)
+
+int counter = 0;
+void *routin()
 {
-	printf("Coder [%d] started\n", *((int *)nbr));
+	int i = 0;
+	while (i < 200)
+	{
+		i++;
+		counter++;
+	}
 	return NULL;
 }
 
 int main()
 {
-	pthread_t	threads[5];
-	int			ids[5];
-	for (int i = 0; i < 5; i++)
-	{
-		ids[i] = i + 1;
-		pthread_create(&threads[i], NULL, routine, &ids[i]);
-		pthread_join(threads[i], NULL);
-	}
+	pthread_t	t1;
+	pthread_t	t2;
+
+	pthread_create(&t1, NULL, routin, NULL);
+	pthread_create(&t2, NULL, routin, NULL);
+	// sleep(5);
+	pthread_join(t1, NULL);
+	pthread_join(t2, NULL);
+	printf("%d\n", counter);
+	printf("%ld\n", sizeof(pthread_t));
+	printf("%p\n",pthread_t);
 }
