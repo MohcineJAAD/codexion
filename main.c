@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 typedef struct s_simulation
 {
@@ -14,6 +15,23 @@ typedef struct s_simulation
 	char *scheduler;
 
 } Simulation;
+
+typedef struct {
+	int id;
+	int is_available;
+	int is_on_cooldown;
+	int cooldown_counter;
+} Dongle;
+
+typedef struct 
+{
+	int id;
+	int compile_counter;
+	int last_compile_start;
+	int d_left;
+	int d_right;
+} Coder;
+
 
 // typedef struct s_coder
 // {
