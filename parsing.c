@@ -3,17 +3,19 @@
 int	is_overflowed(char *str)
 {
 	char	*max_int;
-	int 	len;
+	int		len;
 	int		i;
 
 	max_int = "2147483647";
+	if (*str == '+')
+		str++;
 	len = strlen(str);
 	i = 0;
-	if (len > 11)
+	if (len > 10)
 		return 1;
-	else if (len == 11)
+	else if (len == 10)
 	{
-		while (i < 11)
+		while (i < 10)
 		{
 			if (str[i] > max_int[i])
 				return 1;
@@ -57,6 +59,8 @@ int	*ft_validator(int argc, char **argv)
 
 	i = 1;
 	buffer = malloc(sizeof(int) * 7);
+	if (!buffer)
+		return NULL;
 	if (strcmp("fifo", argv[argc - 1]) != 0 && strcmp("edf", argv[argc - 1]) != 0)
 		return ft_clear(buffer);
 	while (i < argc - 1)
@@ -69,7 +73,7 @@ int	*ft_validator(int argc, char **argv)
 		else
 		{
 			buffer[i - 1] = atoi(argv[i]);
-			if (buffer[i - 1] <= 0)
+			if (buffer[i - 1] < 0)
 				return ft_clear(buffer);				
 		}
 		i++;

@@ -12,6 +12,8 @@ int ft_init_simulation(int argc, char **argv, Simulation **sm)
 	}
 	i = 0;
 	*sm = malloc(sizeof(Simulation));
+	if (!*sm)
+		return (free(data), -1);
 	(*sm)->number_of_coders = data[i++];
 	(*sm)->time_to_burnout = data[i++];
 	(*sm)->time_to_compile = data[i++];
@@ -29,7 +31,11 @@ void ft_init_coders(t_coder **coder, t_dongle **dg, Simulation *sm)
 	int			index;
 
 	*coder = malloc(sizeof(t_coder) * sm->number_of_coders);
+	if (!*coder)
+		return;
 	*dg = malloc(sizeof(t_dongle) * sm->number_of_coders);
+	if (!*dg)
+		return(free(*coder), (void)(*coder = NULL));
 	index = 0;
 	while (index < sm->number_of_coders)
 	{
@@ -53,6 +59,8 @@ pthread_t	*ft_init_threads(t_coder *coders)
 
 	i = 0;
 	th = malloc(sizeof(pthread_t) * coders->sim->number_of_coders);
+	if (!th)
+		return NULL;
 	while(i < coders->sim->number_of_coders)
 	{
 		pthread_create(&th[i], NULL, coder_routine, &coders[i]);
