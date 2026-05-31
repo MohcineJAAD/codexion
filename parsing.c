@@ -19,6 +19,8 @@ int	is_overflowed(char *str)
 		{
 			if (str[i] > max_int[i])
 				return 1;
+			else if (str[i] < max_int[i])
+				return 0;
 			i++;
 		}
 	}
@@ -66,10 +68,8 @@ int	*ft_validator(int argc, char **argv)
 	while (i < argc - 1)
 	{
 		
-		if (ft_is_just_nums(argv[i]) == -1 || is_overflowed(argv[i])) {
-			ft_clear(buffer);
-			return NULL;
-		}
+		if (ft_is_just_nums(argv[i]) == -1 || is_overflowed(argv[i]))
+			return ft_clear(buffer);
 		else
 		{
 			buffer[i - 1] = atoi(argv[i]);
@@ -78,6 +78,8 @@ int	*ft_validator(int argc, char **argv)
 		}
 		i++;
 	}
+	if (buffer[0] < 1)
+		return ft_clear(buffer);
 	return buffer;
 }
 
