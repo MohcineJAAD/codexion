@@ -1,35 +1,41 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mjaad <mjaad@student.42.fr>                #+#  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026-05-31 18:53:15 by mjaad             #+#    #+#             */
+/*   Updated: 2026-05-31 18:53:15 by mjaad            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
-int main(int argc, char **argv)
+static void	ft_cleanup(t_environment *env)
 {
-	Simulation	*sm;
-	t_coder		*coders;
-	t_dongle	*dongles;
-	pthread_t	*threads;
-	int			i;
-	
+	int	i;
 
-    if (argc != 9)
-    {
-		fprintf(stderr, "argument not complete\n");
-		return 1;
-	}
-	if (ft_init_simulation(argc, argv, &sm) == 1)
+	i = 0;
+	while (i < env->sm->number_of_coders)
 	{
-		ft_init_coders(&coders, &dongles, sm);
-		threads = ft_init_threads(coders);
-		i = 0;
-		while(i < sm->number_of_coders)
-		{
-			printf("dongle id '%d' counter = %d\n", dongles[i].id, dongles[i].counter);
-			pthread_mutex_destroy(&(dongles[i].mutex));
-			i++;
-		}
-		free(sm);
-		free(dongles);
-		free(coders);
-		free(threads);
+		pthread_mutex_destroy(&(env->dongles[i].mutex));
+		i++;
 	}
-	else
-		fprintf(stderr, "Rejected: invalid inputs\n");
+	free(env->sm);
+	free(env->dongles);
+	free(env->coders);
+	free(env->threads);
+}
+
+int	main(int argc, char **argv)
+{
+	t_environment	env;
+
+	if (argc != 9)
+		return (fprintf(stderr, "argument not complete\n"), 1);
+	if (ft_init_all(argc, argv, &env) != 1)
+		return (fprintf(stderr, "initialization failed\n"), 1);
+	ft_cleanup(&env);
+	return (0);
 }

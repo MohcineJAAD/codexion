@@ -12,11 +12,11 @@
 
 #ifndef CODEXION_H
 # define CODEXION_H
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
+# include <stdio.h>
+# include <unistd.h>
+# include <stdlib.h>
+# include <string.h>
+# include <pthread.h>
 
 typedef struct s_simulation
 {
@@ -29,31 +29,38 @@ typedef struct s_simulation
 	int		dongle_cooldown;
 	char	*scheduler;
 
-}	Simulation;
+}	t_simulation;
 
-typedef struct s_dongle{
+typedef struct s_dongle
+{
 	int				id;
-	int				counter;
 	pthread_mutex_t	mutex;
 }	t_dongle;
 
 typedef struct s_coder
 {
-	int			id;
-	t_dongle	*dongle_left;
-	t_dongle	*dongle_right;
-	Simulation	*sim;
+	int				id;
+	t_dongle		*dongle_left;
+	t_dongle		*dongle_right;
+	t_simulation	*sim;
 }	t_coder;
 
+typedef struct s_environment
+{
+	t_simulation	*sm;
+	t_coder			*coders;
+	t_dongle		*dongles;
+	pthread_t		*threads;
+}	t_environment;
 
-int	is_overflowed(char *str);
-int	ft_is_just_nums(char *str);
-int	*ft_validator(int argc, char **argv);
-void *ft_clear(int *location);
+void	*ft_clear(int *location);
 void	*coder_routine(void *coder);
-int ft_init_simulation(int argc, char **argv, Simulation **sm);
-void ft_init_coders(t_coder **coder, t_dongle **dg, Simulation *sm);
-pthread_t	*ft_init_threads(t_coder *coders);
-
+int		ft_init_threads(t_environment *env);
+int		*ft_validator(int argc, char **argv);
+int		is_overflowed(char *str);
+int		ft_is_just_nums(char *str);
+int		ft_init_simulation(int argc, char **argv, t_simulation **sm);
+int		ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm);
+int		ft_init_all(int argc, char **argv, t_environment *env);
 
 #endif
