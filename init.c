@@ -94,6 +94,8 @@ int	ft_init_threads(t_environment *env)
 
 int	ft_init_all(int argc, char **argv, t_environment *env)
 {
+	int	i;
+
 	if (ft_init_simulation(argc, argv, &(env->sm)) != 1)
 		return (-1);
 	if (ft_init_coders(&(env->coders), &(env->dongles), env->sm) != 1)
@@ -103,6 +105,9 @@ int	ft_init_all(int argc, char **argv, t_environment *env)
 	}
 	if (ft_init_threads(env) != 1)
 	{
+		i = 0;
+		while (i < env->sm->number_of_coders)
+			pthread_mutex_destroy(&(env->dongles[i++].mutex));
 		free(env->sm);
 		free(env->coders);
 		free(env->dongles);
