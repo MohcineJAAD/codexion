@@ -21,16 +21,16 @@
 
 typedef struct s_simulation
 {
-	int		number_of_coders;
-	int		time_to_burnout;
-	int		time_to_compile;
-	int		time_to_debug;
-	int		time_to_refactor;
-	int		number_of_compiles_required;
-	int		dongle_cooldown;
-	char	*scheduler;
-	long	start_time;
-
+	pthread_mutex_t print_mutex;
+	int				number_of_coders;
+	int				time_to_burnout;
+	int				time_to_compile;
+	int				time_to_debug;
+	int				time_to_refactor;
+	int				number_of_compiles_required;
+	int				dongle_cooldown;
+	char			*scheduler;
+	long			start_time;
 }	t_simulation;
 
 typedef struct s_dongle
@@ -66,5 +66,6 @@ int		ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm);
 int		ft_init_all(int argc, char **argv, t_environment *env);
 void	ft_join_threads(t_environment *env, int index);
 long    ft_get_time(void);
+void	ft_print_log(t_coder *cd, char *log);
 
 #endif
