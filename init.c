@@ -63,10 +63,23 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 	return (1);
 }
 
+void	ft_join_threads(t_environment *env, int index)
+{
+	int	i;
+
+	i = 0;
+	while (i < index)
+	{
+		pthread_join(env->threads[i], NULL);
+		i++;
+	}
+}
+
 int	ft_init_threads(t_environment *env)
 {
 	int			i;
 
+	env->sm->start_time = ft_get_time();
 	env->threads = malloc(sizeof(pthread_t) * env->sm->number_of_coders);
 	if (!env->threads)
 		return (-1);
@@ -75,20 +88,14 @@ int	ft_init_threads(t_environment *env)
 	{
 		if (pthread_create(&env->threads[i], NULL, coder_routine, &env->coders[i]) != 0)
 		{
-			while (--i >= 0)
-				pthread_join(env->threads[i], NULL);
+			ft_join_threads(env, i);
 			free(env->threads);
 			env->threads = NULL;
 			return (-1);
 		}
 		i++;
 	}
-	i = 0;
-	while (i < env->sm->number_of_coders)
-	{
-		pthread_join(env->threads[i], NULL);
-		i++;
-	}
+	ft_join_threads(env, env->sm->number_of_coders);
 	return (1);
 }
 

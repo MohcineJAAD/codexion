@@ -17,6 +17,7 @@
 # include <stdlib.h>
 # include <string.h>
 # include <pthread.h>
+# include <sys/time.h>
 
 typedef struct s_simulation
 {
@@ -28,6 +29,7 @@ typedef struct s_simulation
 	int		number_of_compiles_required;
 	int		dongle_cooldown;
 	char	*scheduler;
+	long	start_time;
 
 }	t_simulation;
 
@@ -62,5 +64,7 @@ int		ft_is_just_nums(char *str);
 int		ft_init_simulation(int argc, char **argv, t_simulation **sm);
 int		ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm);
 int		ft_init_all(int argc, char **argv, t_environment *env);
+void	ft_join_threads(t_environment *env, int index);
+long    ft_get_time(void);
 
 #endif
