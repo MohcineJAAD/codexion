@@ -79,11 +79,11 @@ int	ft_init_threads(t_environment *env)
 {
 	int			i;
 
-	env->sm->start_time = ft_get_time();
 	env->threads = malloc(sizeof(pthread_t) * env->sm->number_of_coders);
 	if (!env->threads)
 		return (-1);
 	i = 0;
+	env->sm->start_time = ft_get_time();
 	while (i < env->sm->number_of_coders)
 	{
 		if (pthread_create(&env->threads[i], NULL, coder_routine, &env->coders[i]) != 0)
