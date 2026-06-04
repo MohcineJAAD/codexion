@@ -56,6 +56,8 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 		pthread_mutex_init(&((*dg)[index].mutex), NULL);
 		(*coder)[index].id = index + 1;
 		(*coder)[index].sim = sm;
+		(*coder)[index].compile_count = 0;
+		(*coder)[index].last_compile_start = 0;
 		(*coder)[index].dongle_left = *dg + (index % sm->number_of_coders);
 		(*coder)[index].dongle_right = *dg + ((index + 1) % sm->number_of_coders);
 		index++;
@@ -84,6 +86,9 @@ int	ft_init_threads(t_environment *env)
 		return (-1);
 	i = 0;
 	env->sm->start_time = ft_get_time();
+	env->sm->running = 1;
+	pthread_mutex_init(&(env->sm->running_mutex), NULL);
+	pthread_mutex_init(&(env->sm->print_mutex), NULL);
 	while (i < env->sm->number_of_coders)
 	{
 		if (pthread_create(&env->threads[i], NULL, coder_routine, &env->coders[i]) != 0)

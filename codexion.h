@@ -22,6 +22,7 @@
 typedef struct s_simulation
 {
 	pthread_mutex_t print_mutex;
+	pthread_mutex_t	running_mutex;
 	int				number_of_coders;
 	int				time_to_burnout;
 	int				time_to_compile;
@@ -31,6 +32,7 @@ typedef struct s_simulation
 	int				dongle_cooldown;
 	char			*scheduler;
 	long			start_time;
+	int				running;
 }	t_simulation;
 
 typedef struct s_dongle
@@ -42,6 +44,8 @@ typedef struct s_dongle
 typedef struct s_coder
 {
 	int				id;
+	int				compile_count;
+	long			last_compile_start;
 	t_dongle		*dongle_left;
 	t_dongle		*dongle_right;
 	t_simulation	*sim;

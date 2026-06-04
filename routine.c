@@ -39,6 +39,16 @@ static void ft_refactoring(t_coder *cd)
 	usleep(cd->sim->time_to_refactor * 1000);
 }
 
+int		ft_is_running(t_simulation *sim)
+{
+	int	running;
+
+	pthread_mutex_lock(&(sim->running_mutex));
+	running = sim->running;
+	pthread_mutex_unlock(&(sim->running_mutex));
+	return (running);
+}
+
 void	*coder_routine(void *coder)
 {
 	t_coder *cd;
@@ -46,7 +56,7 @@ void	*coder_routine(void *coder)
 
 	cd = (t_coder *)coder;
 	i = 0;
-	while (i < cd->sim->number_of_compiles_required)
+	while (ft_is_running(cd->sim))
 	{
 		if (cd->id == cd->sim->number_of_coders)
 			ft_compile(cd, 1);
