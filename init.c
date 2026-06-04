@@ -100,7 +100,6 @@ int	ft_init_threads(t_environment *env)
 		}
 		i++;
 	}
-	ft_join_threads(env, env->sm->number_of_coders);
 	return (1);
 }
 

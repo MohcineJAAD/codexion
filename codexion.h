@@ -71,5 +71,6 @@ int		ft_init_all(int argc, char **argv, t_environment *env);
 void	ft_join_threads(t_environment *env, int index);
 long    ft_get_time(void);
 void	ft_print_log(t_coder *cd, char *log);
+long    ft_get_time_now(void);
 
 #endif

@@ -24,7 +24,8 @@ static void ft_compile(t_coder *cd, int direction)
 		pthread_mutex_unlock(&(cd->dongle_left->mutex));
 		pthread_mutex_unlock(&(cd->dongle_right->mutex));
 	}
-	
+	cd->last_compile_start = ft_get_time();
+	cd->compile_count++;
 }
 
 static void	ft_debugging(t_coder *cd)
