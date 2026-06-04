@@ -2,6 +2,7 @@
 
 static void ft_compile(t_coder *cd, int direction)
 {
+	cd->last_compile_start = ft_get_time();
 	if (direction == 1)
 	{
 		pthread_mutex_lock(&(cd->dongle_right->mutex));
@@ -24,7 +25,7 @@ static void ft_compile(t_coder *cd, int direction)
 		pthread_mutex_unlock(&(cd->dongle_left->mutex));
 		pthread_mutex_unlock(&(cd->dongle_right->mutex));
 	}
-	cd->last_compile_start = ft_get_time();
+	
 	cd->compile_count++;
 }
 
