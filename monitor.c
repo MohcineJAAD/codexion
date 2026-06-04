@@ -14,6 +14,7 @@ void	ft_monitor(t_environment *env)
 {
 	int	i;
 	int	all_done;
+    int count;
 	while (1)
 	{
         usleep(1000);
@@ -29,8 +30,11 @@ void	ft_monitor(t_environment *env)
 				ft_print_log(&(env->coders[i]), "burned out\n");
 				return;
 			}
-			else if (env->coders[i].compile_count < env->sm->number_of_compiles_required)
-				all_done = 0;
+			pthread_mutex_lock(&(env->sm->running_mutex));
+            count = env->coders[i].compile_count;
+            pthread_mutex_unlock(&(env->sm->running_mutex));
+            if (count < env->sm->number_of_compiles_required)
+                all_done = 0;
 			i++;
 		}
 		if (all_done)
