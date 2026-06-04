@@ -16,6 +16,7 @@ void	ft_monitor(t_environment *env)
 	int	all_done;
 	while (1)
 	{
+        usleep(1000);
 		i = 0;
 		all_done = 1;
 		while (i < env->sm->number_of_coders)
