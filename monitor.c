@@ -10,40 +10,47 @@ static int  ft_is_burnout(t_coder *cd)
 	return 0;
 }
 
+static	int	ft_is_compile_max(t_coder *cd)
+{
+	if (cd->compile_count >= cd->sim->number_of_compiles_required)
+		return 1;
+	else
+		return 0;
+}
+
+static	void ft_shutdown(t_environment *env)
+{
+	pthread_mutex_lock(&(env->sm->running_mutex));
+	env->sm->running = 0;
+	pthread_mutex_unlock(&(env->sm->running_mutex));
+}
+
 void	ft_monitor(t_environment *env)
 {
 	int	i;
-	int	all_done;
-    int count;
+	int	all_compil;
+
 	while (1)
 	{
-        usleep(1000);
+		usleep(1000);
 		i = 0;
-		all_done = 1;
+		all_compil = 1;
 		while (i < env->sm->number_of_coders)
 		{
 			if (ft_is_burnout(&(env->coders[i])))
 			{
-				pthread_mutex_lock(&(env->sm->running_mutex));
-				env->sm->running = 0;
-				pthread_mutex_unlock(&(env->sm->running_mutex));
-				ft_print_log(&(env->coders[i]), "burned out\n");
+				ft_print_log(&(env->coders[i]) ,"burned out\n" );
+				ft_shutdown(env);
 				return;
 			}
-			pthread_mutex_lock(&(env->sm->running_mutex));
-            count = env->coders[i].compile_count;
-            pthread_mutex_unlock(&(env->sm->running_mutex));
-            if (count < env->sm->number_of_compiles_required)
-                all_done = 0;
+			if (!ft_is_compile_max(&(env->coders[i])))
+				all_compil = 0;
 			i++;
 		}
-		if (all_done)
+		if (all_compil)
 		{
-			pthread_mutex_lock(&(env->sm->running_mutex));
-			env->sm->running = 0;
-			pthread_mutex_unlock(&(env->sm->running_mutex));
+			ft_shutdown(env);
 			return;
 		}
 	}
-	
 }
