@@ -53,6 +53,7 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 	while (index < sm->number_of_coders)
 	{
 		(*dg)[index].id = index + 1;
+		(*dg)[index].released_at = 0;
 		pthread_mutex_init(&((*dg)[index].mutex), NULL);
 		(*coder)[index].id = index + 1;
 		(*coder)[index].sim = sm;

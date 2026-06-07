@@ -1,33 +1,41 @@
 #include "codexion.h"
 
+static void	ft_wait_dongles(t_coder *cd, t_dongle *dg)
+{
+	long	wait;
+
+	wait = cd->sim->dongle_cooldown - (ft_get_time() - dg->released_at);
+	if (wait > 0)
+		usleep(wait * 1000);
+	pthread_mutex_lock(&(dg->mutex));
+	wait = cd->sim->dongle_cooldown - (ft_get_time() - dg->released_at);
+	if (wait > 0)
+		usleep(wait * 1000);
+}
+
 static void ft_compile(t_coder *cd, int direction)
 {
-	cd->last_compile_start = ft_get_time();
+	t_dongle	*dongles[2];
+
+	dongles[0] = cd->dongle_left;
+	dongles[1] = cd->dongle_right;
 	if (direction == 1)
 	{
-		pthread_mutex_lock(&(cd->dongle_right->mutex));
-		ft_print_log(cd, "has taken a dongle\n");
-		pthread_mutex_lock(&(cd->dongle_left->mutex));
-		ft_print_log(cd, "has taken a dongle\n");
-		ft_print_log(cd, "is compiling\n");
-		usleep(cd->sim->time_to_compile * 1000);
-		pthread_mutex_unlock(&(cd->dongle_right->mutex));
-		pthread_mutex_unlock(&(cd->dongle_left->mutex));
+		dongles[0] = cd->dongle_right;
+		dongles[1] = cd->dongle_left;
 	}
-	else
-	{
-		pthread_mutex_lock(&(cd->dongle_left->mutex));
-		ft_print_log(cd, "has taken a dongle\n");
-		pthread_mutex_lock(&(cd->dongle_right->mutex));
-		ft_print_log(cd, "has taken a dongle\n");
-		ft_print_log(cd, "is compiling\n");
-		usleep(cd->sim->time_to_compile * 1000);
-		pthread_mutex_unlock(&(cd->dongle_left->mutex));
-		pthread_mutex_unlock(&(cd->dongle_right->mutex));
-	}
-	pthread_mutex_lock(&(cd->sim->running_mutex));
+	cd->last_compile_start = ft_get_time();
+	ft_wait_dongles(cd, dongles[0]);
+	ft_print_log(cd, "has taken a dongle\n");
+	ft_wait_dongles(cd, dongles[1]);
+	ft_print_log(cd, "has taken a dongle\n");
+	ft_print_log(cd, "is compiling\n");
+	usleep(cd->sim->time_to_compile * 1000);
+	dongles[0]->released_at = ft_get_time();
+	dongles[1]->released_at = ft_get_time();
+	pthread_mutex_unlock(&(dongles[0]->mutex));
+	pthread_mutex_unlock(&(dongles[1]->mutex));
 	cd->compile_count++;
-	pthread_mutex_unlock(&(cd->sim->running_mutex));
 }
 
 static void	ft_debugging(t_coder *cd)
@@ -55,19 +63,26 @@ int		ft_is_running(t_simulation *sim)
 void	*coder_routine(void *coder)
 {
 	t_coder *cd;
-	int		i;
 
 	cd = (t_coder *)coder;
-	i = 0;
+	if (cd->sim->number_of_coders == 1)
+	{
+		while (ft_is_running(cd->sim))
+			usleep(1000);
+		return (NULL);
+	}
 	while (ft_is_running(cd->sim))
 	{
 		if (cd->id == cd->sim->number_of_coders)
 			ft_compile(cd, 1);
 		else
 			ft_compile(cd, 0);
+		if (!ft_is_running(cd->sim))
+			break;
 		ft_debugging(cd);
+		if (!ft_is_running(cd->sim))
+			break;
 		ft_refactoring(cd);
-		i++;
 	}
 	return NULL;
 }
