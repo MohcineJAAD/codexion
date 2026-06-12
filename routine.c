@@ -1,6 +1,6 @@
 #include "codexion.h"
 
-static void	ft_wait_dongles(t_coder *cd, t_dongle *dg)
+static int	ft_wait_dongles(t_coder *cd, t_dongle *dg)
 {
 	long	wait;
 
@@ -8,9 +8,12 @@ static void	ft_wait_dongles(t_coder *cd, t_dongle *dg)
 	if (wait > 0)
 		usleep(wait * 1000);
 	pthread_mutex_lock(&(dg->mutex));
-	wait = cd->sim->dongle_cooldown - (ft_get_time() - dg->released_at);
-	if (wait > 0)
-		usleep(wait * 1000);
+	if (!ft_is_running(cd->sim))
+	{
+		pthread_mutex_unlock(&(dg->mutex));
+		return 1;
+	}
+	return 0;
 }
 
 static void ft_compile(t_coder *cd, int direction)
@@ -25,9 +28,14 @@ static void ft_compile(t_coder *cd, int direction)
 		dongles[1] = cd->dongle_left;
 	}
 	cd->last_compile_start = ft_get_time();
-	ft_wait_dongles(cd, dongles[0]);
+	if (ft_wait_dongles(cd, dongles[0]))
+		return ;
 	ft_print_log(cd, "has taken a dongle\n");
-	ft_wait_dongles(cd, dongles[1]);
+	if (ft_wait_dongles(cd, dongles[1]))
+	{
+		pthread_mutex_unlock(&(dongles[0]->mutex));
+		return;
+	}
 	ft_print_log(cd, "has taken a dongle\n");
 	ft_print_log(cd, "is compiling\n");
 	usleep(cd->sim->time_to_compile * 1000);
@@ -67,8 +75,11 @@ void	*coder_routine(void *coder)
 	cd = (t_coder *)coder;
 	if (cd->sim->number_of_coders == 1)
 	{
+		pthread_mutex_lock(&(cd->dongle_left->mutex));
+		ft_print_log(cd, "has taken a dongle\n");
 		while (ft_is_running(cd->sim))
 			usleep(1000);
+		pthread_mutex_unlock(&(cd->dongle_left->mutex));
 		return (NULL);
 	}
 	while (ft_is_running(cd->sim))
