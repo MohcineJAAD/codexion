@@ -55,6 +55,7 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 		(*dg)[index].id = index + 1;
 		(*dg)[index].released_at = 0;
 		pthread_mutex_init(&((*dg)[index].mutex), NULL);
+		pthread_cond_init(&((*coder)[index].cond), NULL);
 		(*coder)[index].id = index + 1;
 		(*coder)[index].sim = sm;
 		(*coder)[index].compile_count = 0;
@@ -115,6 +116,7 @@ int	ft_init_all(int argc, char **argv, t_environment *env)
 		free(env->sm);
 		return (-1);
 	}
+	ft_init_scheduler(env);
 	if (ft_init_threads(env) != 1)
 	{
 		i = 0;

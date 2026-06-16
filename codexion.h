@@ -19,6 +19,8 @@
 # include <pthread.h>
 # include <sys/time.h>
 
+typedef struct s_coder t_coder;
+
 typedef struct s_simulation
 {
 	pthread_mutex_t print_mutex;
@@ -35,11 +37,20 @@ typedef struct s_simulation
 	int				running;
 }	t_simulation;
 
+typedef struct s_queue
+{
+	t_coder	**queue;
+	int		tail;
+	int		head;
+	int		size;
+}	t_queue;
+
 typedef struct s_dongle
 {
 	int				id;
 	long			released_at;
 	pthread_mutex_t	mutex;
+	t_queue			queue;
 }	t_dongle;
 
 typedef struct s_coder
@@ -50,6 +61,7 @@ typedef struct s_coder
 	t_dongle		*dongle_left;
 	t_dongle		*dongle_right;
 	t_simulation	*sim;
+	pthread_cond_t	cond;
 }	t_coder;
 
 typedef struct s_environment
@@ -59,6 +71,8 @@ typedef struct s_environment
 	t_dongle		*dongles;
 	pthread_t		*threads;
 }	t_environment;
+
+
 
 void	*ft_clear(int *location);
 void	*coder_routine(void *coder);
@@ -75,5 +89,5 @@ void	ft_print_log(t_coder *cd, char *log);
 long    ft_get_time_now(void);
 void	ft_monitor(t_environment *env);
 int		ft_is_running(t_simulation *sim);
-
+int		ft_init_scheduler(t_environment *env);
 #endif
