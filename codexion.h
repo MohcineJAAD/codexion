@@ -41,10 +41,8 @@ typedef struct s_simulation
 typedef struct s_dongle
 {
 	int				id;
-	int				in_use;
 	long			released_at;
 	pthread_mutex_t	mutex;
-	pthread_mutex_t	mutex_queue;
 	t_queue			queue;
 }	t_dongle;
 
