@@ -18,6 +18,7 @@
 # include <string.h>
 # include <pthread.h>
 # include <sys/time.h>
+# include "queue.h"
 
 typedef struct s_coder t_coder;
 
@@ -37,19 +38,13 @@ typedef struct s_simulation
 	int				running;
 }	t_simulation;
 
-typedef struct s_queue
-{
-	t_coder	**queue;
-	int		tail;
-	int		head;
-	int		size;
-}	t_queue;
-
 typedef struct s_dongle
 {
 	int				id;
+	int				in_use;
 	long			released_at;
 	pthread_mutex_t	mutex;
+	pthread_mutex_t	mutex_queue;
 	t_queue			queue;
 }	t_dongle;
 

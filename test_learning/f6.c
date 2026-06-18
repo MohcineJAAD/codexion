@@ -1,42 +1,37 @@
-#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/time.h>
+#include <pthread.h>
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex;
+pthread_cond_t  cond;
 int             ready = 0;
-
-long    ft_get_time(void)
-{
-    struct timeval  tv;
-
-    gettimeofday(&tv, NULL);
-    return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
-}
-
 
 void *waiter(void *arg)
 {
     (void)arg;
     pthread_mutex_lock(&mutex);
-    if (ready == 0) {
+    printf("waiter: locked mutex\n");
+    printf("waiter: checking ready\n");
+    while (!ready)
+    {
+        printf("waiter: not ready, going to sleep\n");
         pthread_cond_wait(&cond, &mutex);
-        printf("The waiter got the signal, ready = %d\n", ready);
+        printf("waiter: woke up");
     }
+    printf("waiter: ready is 1, continuing\n");
     pthread_mutex_unlock(&mutex);
-    printf("im already wake up bitch\n");
     return (NULL);
 }
 
 void *signaler(void *arg)
 {
-    long long current_time = ft_get_time();
     (void)arg;
+    sleep(1);
+    printf("signaler: locking mutex\n");
     pthread_mutex_lock(&mutex);
-    while (ft_get_time() - current_time <= 10000) ;
+    printf("signaler: setting ready = 1\n");
     ready = 1;
-    printf("signaler: setting ready and signaling\n");
+    printf("signaler: sending signal\n");
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mutex);
     return (NULL);
@@ -46,9 +41,12 @@ int main()
 {
     pthread_t t1, t2;
 
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond, NULL);
     pthread_create(&t1, NULL, waiter, NULL);
     pthread_create(&t2, NULL, signaler, NULL);
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
-    return (0);
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
 }
