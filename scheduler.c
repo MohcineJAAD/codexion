@@ -16,6 +16,7 @@ int		ft_acquire(t_coder *cd, t_dongle *dg)
 	if(strcmp(cd->sim->scheduler, "fifo") == 0)
 		return (ft_fifo_acquire(cd, dg));
 	// TODO: ft_edf_acquire()
+	return (0);
 }
 int ft_init_scheduler(t_environment *env)
 {

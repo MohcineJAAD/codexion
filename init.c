@@ -55,8 +55,6 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 		(*dg)[index].id = index + 1;
 		(*dg)[index].released_at = 0;
 		pthread_mutex_init(&((*dg)[index].mutex), NULL);
-		if (ft_init_queue(&((*dg)[index].queue), 2) == -1)
-			return (free(*coder), free(*dg), *coder = NULL, *dg = NULL, -1);
 		pthread_cond_init(&((*coder)[index].cond), NULL);
 		(*coder)[index].id = index + 1;
 		(*coder)[index].sim = sm;

@@ -1,21 +1,5 @@
 #include "codexion.h"
 
-static int	ft_wait_dongles(t_coder *cd, t_dongle *dg)
-{
-	long	wait;
-
-	wait = cd->sim->dongle_cooldown - (ft_get_time() - dg->released_at);
-	if (wait > 0)
-		usleep(wait * 1000);
-	pthread_mutex_lock(&(dg->mutex));
-	if (!ft_is_running(cd->sim))
-	{
-		pthread_mutex_unlock(&(dg->mutex));
-		return 1;
-	}
-	return 0;
-}
-
 static void ft_compile(t_coder *cd, int direction)
 {
 	t_dongle	*dongles[2];
@@ -28,21 +12,19 @@ static void ft_compile(t_coder *cd, int direction)
 		dongles[1] = cd->dongle_left;
 	}
 	cd->last_compile_start = ft_get_time();
-	if (ft_wait_dongles(cd, dongles[0]))
+	if (ft_acquire(cd, dongles[0]))
 		return ;
 	ft_print_log(cd, "has taken a dongle\n");
-	if (ft_wait_dongles(cd, dongles[1]))
+	if (ft_acquire(cd, dongles[1]))
 	{
-		pthread_mutex_unlock(&(dongles[0]->mutex));
+		ft_release(dongles[0], cd->sim);
 		return;
 	}
 	ft_print_log(cd, "has taken a dongle\n");
 	ft_print_log(cd, "is compiling\n");
 	usleep(cd->sim->time_to_compile * 1000);
-	dongles[0]->released_at = ft_get_time();
-	dongles[1]->released_at = ft_get_time();
-	pthread_mutex_unlock(&(dongles[0]->mutex));
-	pthread_mutex_unlock(&(dongles[1]->mutex));
+	ft_release(dongles[0], cd->sim);
+	ft_release(dongles[1], cd->sim);
 	cd->compile_count++;
 }
 

@@ -20,9 +20,18 @@ static	int	ft_is_compile_max(t_coder *cd)
 
 static	void ft_shutdown(t_environment *env)
 {
+	int	i;
+
 	pthread_mutex_lock(&(env->sm->running_mutex));
 	env->sm->running = 0;
 	pthread_mutex_unlock(&(env->sm->running_mutex));
+
+	i = 0;
+	while (i < env->sm->number_of_coders)
+	{
+		pthread_cond_signal(&(env->coders[i].cond));
+		i++;
+	}
 }
 
 void	ft_monitor(t_environment *env)
