@@ -83,4 +83,10 @@ long    ft_get_time_now(void);
 void	ft_monitor(t_environment *env);
 int		ft_is_running(t_simulation *sim);
 int		ft_init_scheduler(t_environment *env);
+int		ft_init_fifo(t_environment *env);
+void	ft_fifo_release(t_dongle *dg);
+int		ft_fifo_acquire(t_coder *cd, t_dongle *dg);
+int		ft_acquire(t_coder *cd, t_dongle *dg);
+void	ft_release(t_dongle *dg, t_simulation *sim);
+
 #endif
