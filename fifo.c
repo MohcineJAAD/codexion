@@ -7,7 +7,7 @@ int ft_init_fifo(t_environment *env)
     i = 0;
     while (i < env->sm->number_of_coders)
     {
-        if (ft_init_queue(&(env->dongles[i].queue), 2) == -1)
+        if (ft_init_heap(&(env->dongles[i].heap), 2, ft_fifo_cmp) == -1)
             return (-1);
         i++;
     }
@@ -61,4 +61,9 @@ int ft_fifo_acquire(t_coder *cd, t_dongle *dg)
 	ft_dequeue(&(dg->queue));
 	pthread_mutex_unlock(&dg->mutex);
 	return 0;
+}
+
+int ft_fifo_cmp(t_coder *cd1, t_coder *cd2)
+{
+	return (cd1->enqueue_time - cd2->enqueue_time);
 }

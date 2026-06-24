@@ -90,6 +90,48 @@ t_node *ft_search(t_node *root, int value)
         return ft_search(root->right, value);
 }
 
+t_node *ft_delete(t_node *node, int value)
+{
+    t_node *right;
+    t_node *tmp;
+
+    if (!node)
+        return (NULL);
+    if (value < node->value)
+        node->left = ft_delete(node->left, value);
+    else if (value > node->value)
+        node->right = ft_delete(node->right, value);
+    else
+    {
+        if (node->left && node->right)
+        {
+            right = node->right;
+            while(right->left)
+                right = right->left;
+            node->value = right->value;
+            node->right = ft_delete(node->right, right->value);
+        }
+        else if (node->left)
+        {
+            tmp = node->left;
+            free(node);
+            return tmp;
+        }
+        else if (node->right)
+        {
+            tmp = node->right;
+            free(node);
+            return tmp;
+        }
+        else
+        {
+            free(node);
+            return NULL;
+        }
+    }
+    return (node);
+}
+
 int main()
 {
     t_node *root;

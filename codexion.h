@@ -18,7 +18,7 @@
 # include <string.h>
 # include <pthread.h>
 # include <sys/time.h>
-# include "queue.h"
+# include "heap.h"
 
 typedef struct s_coder t_coder;
 
@@ -43,7 +43,7 @@ typedef struct s_dongle
 	int				id;
 	long			released_at;
 	pthread_mutex_t	mutex;
-	t_queue			queue;
+	t_heap			heap;
 }	t_dongle;
 
 typedef struct s_coder
@@ -51,6 +51,7 @@ typedef struct s_coder
 	int				id;
 	int				compile_count;
 	long			last_compile_start;
+	long			enqueue_time;
 	t_dongle		*dongle_left;
 	t_dongle		*dongle_right;
 	t_simulation	*sim;
