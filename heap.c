@@ -16,24 +16,50 @@ static void ft_heapify_up(t_heap *h, int i)
     t_coder *tmp;
     int     parent;
 
-    if (i == 0)
-        return ;
     tmp = h->heap[i];
-    parent = (i - 1) / 2;
-    if (h->cmp(h->heap[parent], tmp) > 0)
+    while (i > 0)
     {
-        h->heap[i] = h->heap[parent];
-        i = parent;
+        parent = (i - 1) / 2;
+        if (h->cmp(h->heap[parent], tmp) > 0)
+        {
+            h->heap[i] = h->heap[parent];
+            i = parent;
+        }
+        else
+            break;
     }
     h->heap[i] = tmp;
 }
 void ft_insert(t_heap *h, t_coder *cd)
 {
+    
     h->heap[h->size] = cd;
     ft_heapify_up(h, h->size);
     h->size++;
 }
 
+static void ft_heapify_down(t_heap *h, int index)
+{
+    int left;
+    int right;
+    int smallest;
+    t_coder *tmp;
+
+    left = (index * 2) + 1;
+    right = (index * 2) + 2;
+    smallest = index;
+    if (left < h->size && h->cmp(h->heap[smallest], h->heap[left]) < 0)
+        smallest = left;
+    if (right < h->size && h->cmp(h->heap[smallest], h->heap[right]) < 0)
+        smallest = right;
+    if (smallest != index)
+    {
+        tmp = h->heap[smallest];
+        h->heap[smallest] = h->heap[index];
+        h->heap[index] = tmp;
+        ft_heapify_down(h, smallest);
+    }
+}
 t_coder *ft_extract_min(t_heap *h)
 {
     t_coder *root;
@@ -43,6 +69,7 @@ t_coder *ft_extract_min(t_heap *h)
     root = h->heap[0];
     h->size--;
     h->heap[0] = h->heap[h->size];
+    ft_heapify_down(h, 0);
     return (root);
 }
 

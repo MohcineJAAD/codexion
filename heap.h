@@ -8,7 +8,7 @@ typedef struct s_heap
     t_coder **heap;
     int size;
     int capacity;
-    int (*cmp)(t_coder *, t_coder *);
+    long (*cmp)(t_coder *, t_coder *);
 } t_heap;
 
 int ft_init_heap(t_heap *h, int capacity, int (*cmp)(t_coder*, t_coder*));
