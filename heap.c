@@ -1,6 +1,6 @@
 #include "heap.h"
 
-int ft_init_heap(t_heap *h, int capacity, int (*cmp)(t_coder*, t_coder*))
+int ft_init_heap(t_heap *h, int capacity, long (*cmp)(t_coder*, t_coder*))
 {
     h->heap = malloc(sizeof(t_coder *) * capacity);
     if (!(h->heap))
@@ -48,9 +48,9 @@ static void ft_heapify_down(t_heap *h, int index)
     left = (index * 2) + 1;
     right = (index * 2) + 2;
     smallest = index;
-    if (left < h->size && h->cmp(h->heap[smallest], h->heap[left]) < 0)
+    if (left < h->size && h->cmp(h->heap[left], h->heap[smallest]) < 0)
         smallest = left;
-    if (right < h->size && h->cmp(h->heap[smallest], h->heap[right]) < 0)
+    if (right < h->size && h->cmp(h->heap[right], h->heap[smallest]) < 0)
         smallest = right;
     if (smallest != index)
     {

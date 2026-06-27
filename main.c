@@ -20,7 +20,7 @@ static void	ft_cleanup(t_environment *env)
 	while (i < env->sm->number_of_coders)
 	{
 		pthread_mutex_destroy(&(env->dongles[i].mutex));
-		ft_destroy_queue(&(env->dongles[i].queue));
+		ft_heap_destroy(&(env->dongles[i].heap));
 		i++;
 	}
 	pthread_mutex_destroy(&(env->sm->print_mutex));
