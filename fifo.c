@@ -44,13 +44,22 @@ void	ft_fifo_release(t_dongle *dg)
 	pthread_mutex_unlock(&(dg->mutex));
 }
 
-static void ft_wait_cooldwon(t_coder *cd, t_dongle *dg)
+static void ft_wait_cooldown(t_coder *cd, t_dongle *dg)
 {
 	struct timeval	tv;
 	struct timespec	ts;
 	long			remaining;
 
 	remaining = ft_cooldown_remaining(dg, cd->sim->dongle_cooldown);
+	gettimeofday(&tv, NULL);
+	ts.tv_sec = tv.tv_sec + (remaining/1000);
+	ts.tv_nsec = (tv.tv_usec * 1000) + (remaining % 1000) * 1000 * 1000;
+	if (ts.tv_nsec >= 1000000000)
+	{
+		ts.tv_sec++;
+		ts.tv_nsec -= 1000000000;
+	}
+	pthread_cond_timedwait(&(cd->cond), &(dg->mutex), &ts);
 }
 
 int ft_fifo_acquire(t_coder *cd, t_dongle *dg)
@@ -62,7 +71,7 @@ int ft_fifo_acquire(t_coder *cd, t_dongle *dg)
 		cd->sim->dongle_cooldown) || dg->heap.heap[0] != cd))
 	{
 		if (dg->heap.heap[0] == cd)
-			ft_wait_cooldwon(&cd, &dg);
+			ft_wait_cooldown(cd, dg);
 		else
 			pthread_cond_wait(&(cd->cond), &(dg->mutex));
 
