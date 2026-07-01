@@ -34,11 +34,13 @@ static	void ft_shutdown(t_environment *env)
 	}
 }
 
-void	ft_monitor(t_environment *env)
+void	*ft_monitor(void *arg)
 {
-	int	i;
-	int	all_compil;
+	t_environment	*env;
+	int				i;
+	int				all_compil;
 
+	env = (t_environment *)arg;
 	while (1)
 	{
 		usleep(1000);
@@ -50,16 +52,13 @@ void	ft_monitor(t_environment *env)
 			{
 				ft_print_log(&(env->coders[i]) ,"burned out\n" );
 				ft_shutdown(env);
-				return;
+				return (NULL);
 			}
 			if (!ft_is_compile_max(&(env->coders[i])))
 				all_compil = 0;
 			i++;
 		}
 		if (all_compil)
-		{
-			ft_shutdown(env);
-			return;
-		}
+			return(ft_shutdown(env), NULL);
 	}
 }

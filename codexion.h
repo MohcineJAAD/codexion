@@ -80,7 +80,7 @@ int		ft_init_all(int argc, char **argv, t_environment *env);
 void	ft_join_threads(t_environment *env, int index);
 long    ft_get_time(void);
 void	ft_print_log(t_coder *cd, char *log);
-void	ft_monitor(t_environment *env);
+void	*ft_monitor(void *env);
 int		ft_is_running(t_simulation *sim);
 int		ft_init_scheduler(t_environment *env);
 int		ft_init_fifo(t_environment *env);
