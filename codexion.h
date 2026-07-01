@@ -80,7 +80,6 @@ int		ft_init_all(int argc, char **argv, t_environment *env);
 void	ft_join_threads(t_environment *env, int index);
 long    ft_get_time(void);
 void	ft_print_log(t_coder *cd, char *log);
-long    ft_get_time_now(void);
 void	ft_monitor(t_environment *env);
 int		ft_is_running(t_simulation *sim);
 int		ft_init_scheduler(t_environment *env);
@@ -89,5 +88,8 @@ void	ft_fifo_release(t_dongle *dg);
 int		ft_fifo_acquire(t_coder *cd, t_dongle *dg);
 int		ft_acquire(t_coder *cd, t_dongle *dg);
 void	ft_release(t_dongle *dg, t_simulation *sim);
+int		ft_edf_acquire(t_coder *cd, t_dongle *dg);
+void	ft_edf_release(t_dongle *dg);
+int		ft_init_edf(t_environment *env);
 
 #endif
