@@ -19,16 +19,16 @@ int ft_init_fifo(t_environment *env)
     return (1);
 }
 
-static int ft_is_in_cooldown(t_dongle *dg, int time_cooldown)
+static int ft_cooldown_remaining(t_dongle *dg, int time_cooldown)
 {
     long	time_now;
-    long	in_cooldown;
+    long	remaining;
 
 	time_now = ft_get_time();
-    in_cooldown = time_cooldown - (time_now - dg->released_at) ;
-    if (in_cooldown > 0)
-		return 1;
-	return 0;
+    remaining = time_cooldown - (time_now - dg->released_at) ;
+    if (remaining > 0)
+		return (remaining);
+	return (0);
 }
 
 void	ft_fifo_release(t_dongle *dg)
@@ -44,20 +44,29 @@ void	ft_fifo_release(t_dongle *dg)
 	pthread_mutex_unlock(&(dg->mutex));
 }
 
+static void ft_wait_cooldwon(t_coder *cd, t_dongle *dg)
+{
+	struct timeval	tv;
+	struct timespec	ts;
+	long			remaining;
+
+	remaining = ft_cooldown_remaining(dg, cd->sim->dongle_cooldown);
+}
+
 int ft_fifo_acquire(t_coder *cd, t_dongle *dg)
 {
 	pthread_mutex_lock(&(dg->mutex));
 	cd->enqueue_time = ft_get_time();
 	ft_insert(&(dg->heap), cd);
-	while
-	(
-		ft_is_running(cd->sim) &&
-		(
-			ft_is_in_cooldown(dg, cd->sim->dongle_cooldown) || 
-			dg->heap.heap[0] != cd
-		)
-	)
-		pthread_cond_wait(&(cd->cond), &(dg->mutex));
+	while(ft_is_running(cd->sim) && (ft_cooldown_remaining(dg,
+		cd->sim->dongle_cooldown) || dg->heap.heap[0] != cd))
+	{
+		if (dg->heap.heap[0] == cd)
+			ft_wait_cooldwon(&cd, &dg);
+		else
+			pthread_cond_wait(&(cd->cond), &(dg->mutex));
+
+	}
 	if (!ft_is_running(cd->sim))
 	{
 		ft_extract_min(&(dg->heap));
