@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mjaad <mjaad@student.42.fr>                #+#  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026-05-29 15:41:12 by mjaad             #+#    #+#             */
-/*   Updated: 2026-05-29 15:41:12 by mjaad            ###   ########.fr       */
+/*   Created: 2026-07-03 19:23:14 by mjaad             #+#    #+#             */
+/*   Updated: 2026-07-03 19:23:14 by mjaad            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,11 @@
 # include <sys/time.h>
 # include "heap.h"
 
-typedef struct s_coder t_coder;
+typedef struct s_coder	t_coder;
 
 typedef struct s_simulation
 {
-	pthread_mutex_t print_mutex;
+	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	running_mutex;
 	int				number_of_coders;
 	int				time_to_burnout;
@@ -66,8 +66,6 @@ typedef struct s_environment
 	pthread_t		*threads;
 }	t_environment;
 
-
-
 void	*ft_clear(int *location);
 void	*coder_routine(void *coder);
 int		ft_init_threads(t_environment *env);
@@ -78,7 +76,7 @@ int		ft_init_simulation(int argc, char **argv, t_simulation **sm);
 int		ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm);
 int		ft_init_all(int argc, char **argv, t_environment *env);
 void	ft_join_threads(t_environment *env, int index);
-long    ft_get_time(void);
+long	ft_get_time(void);
 void	ft_print_log(t_coder *cd, char *log);
 void	*ft_monitor(void *env);
 int		ft_is_running(t_simulation *sim);

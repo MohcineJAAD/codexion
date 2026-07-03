@@ -1,31 +1,42 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   monitor.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mjaad <mjaad@student.42.fr>                #+#  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026-07-03 20:07:53 by mjaad             #+#    #+#             */
+/*   Updated: 2026-07-03 20:07:53 by mjaad            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
-static int  ft_is_burnout(t_coder *cd)
+static int	ft_is_burnout(t_coder *cd)
 {
 	long	time_difference;
 
 	time_difference = ft_get_time() - cd->last_compile_start;
 	if (time_difference > cd->sim->time_to_burnout)
-		return 1;
-	return 0;
+		return (1);
+	return (0);
 }
 
 static	int	ft_is_compile_max(t_coder *cd)
 {
 	if (cd->compile_count >= cd->sim->number_of_compiles_required)
-		return 1;
+		return (1);
 	else
-		return 0;
+		return (0);
 }
 
-static	void ft_shutdown(t_environment *env)
+static void	ft_shutdown(t_environment *env)
 {
 	int	i;
 
 	pthread_mutex_lock(&(env->sm->running_mutex));
 	env->sm->running = 0;
 	pthread_mutex_unlock(&(env->sm->running_mutex));
-
 	i = 0;
 	while (i < env->sm->number_of_coders)
 	{
@@ -50,7 +61,7 @@ void	*ft_monitor(void *arg)
 		{
 			if (ft_is_burnout(&(env->coders[i])))
 			{
-				ft_print_log(&(env->coders[i]) ,"burned out\n" );
+				ft_print_log(&(env->coders[i]), "burned out\n" );
 				ft_shutdown(env);
 				return (NULL);
 			}
@@ -59,6 +70,6 @@ void	*ft_monitor(void *arg)
 			i++;
 		}
 		if (all_compil)
-			return(ft_shutdown(env), NULL);
+			return (ft_shutdown(env), NULL);
 	}
 }
