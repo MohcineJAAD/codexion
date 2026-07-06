@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mjaad <mjaad@student.42.fr>                #+#  +:+       +#+        */
+/*   By: mjaad <mjaad@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026-07-03 20:13:24 by mjaad             #+#    #+#             */
-/*   Updated: 2026-07-03 20:13:24 by mjaad            ###   ########.fr       */
+/*   Created: 2026/07/03 20:13:24 by mjaad             #+#    #+#             */
+/*   Updated: 2026/07/06 19:29:50 by mjaad            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,15 @@ void	*ft_clear(int *location)
 	return (NULL);
 }
 
+int	is_valid_scheduler(char *scheduler)
+{
+	if (strcmp("fifo", scheduler) == 0)
+		return (1);
+	else if (strcmp("edf", scheduler) == 0)
+		return (1);
+	return (0);
+}
+
 int	*ft_validator(int argc, char **argv)
 {
 	int	i;
@@ -76,7 +85,7 @@ int	*ft_validator(int argc, char **argv)
 	buffer = malloc(sizeof(int) * 7);
 	if (!buffer)
 		return (NULL);
-	if (strcmp("fifo", argv[argc - 1]) != 0 && strcmp("edf", argv[argc - 1]) != 0)
+	if (is_valid_scheduler("fifo", argv[argc - 1]))
 		return (ft_clear(buffer));
 	while (i < argc - 1)
 	{

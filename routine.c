@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   routine.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mjaad <mjaad@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/07/06 19:30:12 by mjaad             #+#    #+#             */
+/*   Updated: 2026/07/06 20:05:30 by mjaad            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
-static void ft_compile(t_coder *cd, int direction)
+static void	ft_compile(t_coder *cd, int direction)
 {
 	t_dongle	*dongles[2];
 
@@ -18,7 +30,7 @@ static void ft_compile(t_coder *cd, int direction)
 	if (ft_acquire(cd, dongles[1]))
 	{
 		ft_release(dongles[0], cd->sim);
-		return;
+		return ;
 	}
 	ft_print_log(cd, "has taken a dongle\n");
 	ft_print_log(cd, "is compiling\n");
@@ -34,13 +46,13 @@ static void	ft_debugging(t_coder *cd)
 	usleep(cd->sim->time_to_debug * 1000);
 }
 
-static void ft_refactoring(t_coder *cd)
+static void	ft_refactoring(t_coder *cd)
 {
 	ft_print_log(cd, "is refactoring\n");
 	usleep(cd->sim->time_to_refactor * 1000);
 }
 
-int		ft_is_running(t_simulation *sim)
+int	ft_is_running(t_simulation *sim)
 {
 	int	running;
 
@@ -52,7 +64,7 @@ int		ft_is_running(t_simulation *sim)
 
 void	*coder_routine(void *coder)
 {
-	t_coder *cd;
+	t_coder	*cd;
 
 	cd = (t_coder *)coder;
 	if (cd->sim->number_of_coders == 1)
@@ -66,16 +78,13 @@ void	*coder_routine(void *coder)
 	}
 	while (ft_is_running(cd->sim))
 	{
-		if (cd->id == cd->sim->number_of_coders)
-			ft_compile(cd, 1);
-		else
-			ft_compile(cd, 0);
+		ft_compile(cd, cd->id == cd->sim->number_of_coders);
 		if (!ft_is_running(cd->sim))
-			break;
+			break ;
 		ft_debugging(cd);
 		if (!ft_is_running(cd->sim))
-			break;
+			break ;
 		ft_refactoring(cd);
 	}
-	return NULL;
+	return (NULL);
 }
