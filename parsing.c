@@ -85,7 +85,7 @@ int	*ft_validator(int argc, char **argv)
 	buffer = malloc(sizeof(int) * 7);
 	if (!buffer)
 		return (NULL);
-	if (is_valid_scheduler("fifo", argv[argc - 1]))
+	if (!is_valid_scheduler(argv[argc - 1]))
 		return (ft_clear(buffer));
 	while (i < argc - 1)
 	{
