@@ -40,7 +40,7 @@ static void	ft_shutdown(t_environment *env)
 	i = 0;
 	while (i < env->sm->number_of_coders)
 	{
-		pthread_cond_signal(&(env->coders[i].cond));
+		pthread_cond_broadcast(&(env->coders[i].cond));
 		i++;
 	}
 }

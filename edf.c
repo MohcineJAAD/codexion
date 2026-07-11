@@ -64,7 +64,7 @@ void	ft_edf_release(t_dongle *dg)
 	if (dg->heap.size > 0)
 	{
 		next = dg->heap.heap[0];
-		pthread_cond_signal(&(next->cond));
+		pthread_cond_broadcast(&(next->cond));
 	}
 	pthread_mutex_unlock(&(dg->mutex));
 }
