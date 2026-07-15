@@ -89,5 +89,7 @@ void	ft_release(t_dongle *dg, t_simulation *sim);
 int		ft_edf_acquire(t_coder *cd, t_dongle *dg);
 void	ft_edf_release(t_dongle *dg);
 int		ft_init_edf(t_environment *env);
+int		ft_cooldown_remaining(t_dongle *dg, int time_cooldown);
+void	ft_wait_cooldown(t_coder *cd, t_dongle *dg);
 
 #endif
