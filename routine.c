@@ -23,21 +23,31 @@ static void	ft_compile(t_coder *cd, int direction)
 		dongles[0] = cd->dongle_right;
 		dongles[1] = cd->dongle_left;
 	}
-	cd->last_compile_start = ft_get_time();
 	if (ft_acquire(cd, dongles[0]))
 		return ;
 	ft_print_log(cd, "has taken a dongle\n");
 	if (ft_acquire(cd, dongles[1]))
 	{
-		ft_release(dongles[0], cd->sim);
+		ft_release(dongles[0]);
 		return ;
 	}
 	ft_print_log(cd, "has taken a dongle\n");
+	if (!ft_is_running(cd->sim))
+	{
+		ft_release(dongles[0]);
+		ft_release(dongles[1]);
+		return ;
+	}
 	ft_print_log(cd, "is compiling\n");
+	pthread_mutex_lock(&(cd->sim->stats_mutex));
+	cd->last_compile_start = ft_get_time();
+	pthread_mutex_unlock(&(cd->sim->stats_mutex));
 	usleep(cd->sim->time_to_compile * 1000);
-	ft_release(dongles[0], cd->sim);
-	ft_release(dongles[1], cd->sim);
+	ft_release(dongles[0]);
+	ft_release(dongles[1]);
+	pthread_mutex_lock(&(cd->sim->stats_mutex));
 	cd->compile_count++;
+	pthread_mutex_unlock(&(cd->sim->stats_mutex));
 }
 
 static void	ft_debugging(t_coder *cd)

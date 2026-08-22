@@ -54,9 +54,7 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 	while (index < sm->number_of_coders)
 	{
 		next = (index + 1) % sm->number_of_coders;
-		(*dg)[index].id = index + 1;
-		(*dg)[index].released_at = 0;
-		pthread_mutex_init(&((*dg)[index].mutex), NULL);
+		ft_init_dongles(&((*dg)[index]), index);
 		pthread_cond_init(&((*coder)[index].cond), NULL);
 		(*coder)[index].id = index + 1;
 		(*coder)[index].sim = sm;
@@ -92,6 +90,7 @@ int	ft_init_threads(t_environment *env)
 	env->sm->running = 1;
 	pthread_mutex_init(&(env->sm->running_mutex), NULL);
 	pthread_mutex_init(&(env->sm->print_mutex), NULL);
+	pthread_mutex_init(&(env->sm->stats_mutex), NULL);
 	while (i < env->sm->number_of_coders)
 	{
 		env->coders[i].last_compile_start = ft_get_time();
@@ -124,7 +123,11 @@ int	ft_init_all(int argc, char **argv, t_environment *env)
 	{
 		i = 0;
 		while (i < env->sm->number_of_coders)
-			pthread_mutex_destroy(&(env->dongles[i++].mutex));
+		{
+			ft_heap_destroy(&(env->dongles[i].heap));
+			pthread_mutex_destroy(&(env->dongles[i].mutex));
+			i++;
+		}
 		free(env->sm);
 		free(env->coders);
 		free(env->dongles);

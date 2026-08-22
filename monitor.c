@@ -15,8 +15,12 @@
 static int	ft_is_burnout(t_coder *cd)
 {
 	long	time_difference;
+	long	last_start;
 
-	time_difference = ft_get_time() - cd->last_compile_start;
+	pthread_mutex_lock(&(cd->sim->stats_mutex));
+	last_start = cd->last_compile_start;
+	pthread_mutex_unlock(&(cd->sim->stats_mutex));
+	time_difference = ft_get_time() - last_start;
 	if (time_difference > cd->sim->time_to_burnout)
 		return (1);
 	return (0);
@@ -24,10 +28,17 @@ static int	ft_is_burnout(t_coder *cd)
 
 static	int	ft_is_compile_max(t_coder *cd)
 {
+	pthread_mutex_lock(&(cd->sim->stats_mutex));
 	if (cd->compile_count >= cd->sim->number_of_compiles_required)
+	{
+		pthread_mutex_unlock(&(cd->sim->stats_mutex));
 		return (1);
+	}
 	else
+	{
+		pthread_mutex_unlock(&(cd->sim->stats_mutex));
 		return (0);
+	}
 }
 
 static void	ft_shutdown(t_environment *env)
@@ -61,8 +72,8 @@ void	*ft_monitor(void *arg)
 		{
 			if (ft_is_burnout(&(env->coders[i])))
 			{
-				ft_print_log(&(env->coders[i]), "burned out\n" );
 				ft_shutdown(env);
+				ft_print_log(&(env->coders[i]), "burned out\n" );
 				return (NULL);
 			}
 			if (!ft_is_compile_max(&(env->coders[i])))

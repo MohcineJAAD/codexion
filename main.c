@@ -26,6 +26,7 @@ static void	ft_cleanup(t_environment *env)
 	}
 	pthread_mutex_destroy(&(env->sm->print_mutex));
 	pthread_mutex_destroy(&(env->sm->running_mutex));
+	pthread_mutex_destroy(&(env->sm->stats_mutex));
 	free(env->sm);
 	free(env->dongles);
 	free(env->coders);

@@ -42,20 +42,44 @@ void	ft_wait_cooldown(t_coder *cd, t_dongle *dg)
 	pthread_cond_timedwait(&(cd->cond), &(dg->mutex), &ts);
 }
 
-void	ft_release(t_dongle *dg, t_simulation *sim)
+void	ft_release(t_dongle *dg)
 {
-	if (strcmp(sim->scheduler, "fifo") == 0)
-		ft_fifo_release(dg);
-	else
-		ft_edf_release(dg);
+	t_coder	*next;
+
+	pthread_mutex_lock(&(dg->mutex));
+	dg->released_at = ft_get_time();
+	dg->taken = 0;
+	if (dg->heap.size > 0)
+	{
+		next = dg->heap.heap[0];
+		pthread_cond_broadcast(&(next->cond));
+	}
+	pthread_mutex_unlock(&(dg->mutex));
 }
 
 int	ft_acquire(t_coder *cd, t_dongle *dg)
 {
-	if (strcmp(cd->sim->scheduler, "fifo") == 0)
-		return (ft_fifo_acquire(cd, dg));
-	else
-		return (ft_edf_acquire(cd, dg));
+	pthread_mutex_lock(&(dg->mutex));
+	cd->enqueue_time = ft_get_time();
+	ft_insert(&(dg->heap), cd);
+	while (ft_is_running(cd->sim) && (ft_cooldown_remaining(dg,
+				cd->sim->dongle_cooldown) || dg->heap.heap[0] != cd || dg->taken))
+	{
+		if (dg->heap.heap[0] == cd && !(dg->taken))
+			ft_wait_cooldown(cd, dg);
+		else
+			pthread_cond_wait(&(cd->cond), &(dg->mutex));
+	}
+	if (!ft_is_running(cd->sim))
+	{
+		ft_extract_min(&(dg->heap));
+		pthread_mutex_unlock(&dg->mutex);
+		return (1);
+	}
+	ft_extract_min(&(dg->heap));
+	dg->taken = 1;
+	pthread_mutex_unlock(&dg->mutex);
+	return (0);
 }
 
 int	ft_init_scheduler(t_environment *env)
