@@ -19,14 +19,8 @@ long	ft_fifo_cmp(t_coder *cd1, t_coder *cd2)
 
 int	ft_init_fifo(t_environment *env)
 {
-	int	i;
-
-	i = 0;
-	while (i < env->sm->number_of_coders)
-	{
-		if (ft_init_heap(&(env->dongles[i].heap), 2, ft_fifo_cmp) == -1)
-			return (-1);
-		i++;
-	}
+	if (ft_init_heap(&(env->sm->heap), env->sm->number_of_coders,
+			ft_fifo_cmp) == -1)
+		return (-1);
 	return (1);
 }

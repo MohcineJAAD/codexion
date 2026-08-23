@@ -12,39 +12,20 @@
 
 #include "codexion.h"
 
-static void	ft_compile(t_coder *cd, int direction)
+static void	ft_compile(t_coder *cd)
 {
-	t_dongle	*dongles[2];
-
-	dongles[0] = cd->dongle_left;
-	dongles[1] = cd->dongle_right;
-	if (direction == 1)
-	{
-		dongles[0] = cd->dongle_right;
-		dongles[1] = cd->dongle_left;
-	}
-	if (ft_acquire(cd, dongles[0]))
+	ft_join_heap(cd);
+	if (ft_wait_to_can_compile(cd))
 		return ;
 	ft_print_log(cd, "has taken a dongle\n");
-	if (ft_acquire(cd, dongles[1]))
-	{
-		ft_release(dongles[0]);
-		return ;
-	}
 	ft_print_log(cd, "has taken a dongle\n");
-	if (!ft_is_running(cd->sim))
-	{
-		ft_release(dongles[0]);
-		ft_release(dongles[1]);
-		return ;
-	}
 	ft_print_log(cd, "is compiling\n");
 	pthread_mutex_lock(&(cd->sim->stats_mutex));
 	cd->last_compile_start = ft_get_time();
 	pthread_mutex_unlock(&(cd->sim->stats_mutex));
 	usleep(cd->sim->time_to_compile * 1000);
-	ft_release(dongles[0]);
-	ft_release(dongles[1]);
+	ft_release(cd->dongle_left, cd->sim);
+	ft_release(cd->dongle_right, cd->sim);
 	pthread_mutex_lock(&(cd->sim->stats_mutex));
 	cd->compile_count++;
 	pthread_mutex_unlock(&(cd->sim->stats_mutex));
@@ -88,7 +69,7 @@ void	*coder_routine(void *coder)
 	}
 	while (ft_is_running(cd->sim))
 	{
-		ft_compile(cd, cd->id == cd->sim->number_of_coders);
+		ft_compile(cd);
 		if (!ft_is_running(cd->sim))
 			break ;
 		ft_debugging(cd);

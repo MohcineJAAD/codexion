@@ -12,7 +12,7 @@
 
 #include "heap.h"
 
-static void	ft_heapify_down(t_heap *h, int index)
+void	ft_heapify_down(t_heap *h, int index)
 {
 	t_coder	*tmp;
 	int		left;
@@ -54,4 +54,12 @@ void	ft_heap_destroy(t_heap *h)
 	h->heap = NULL;
 	h->size = 0;
 	h->capacity = 0;
+}
+
+void	ft_remove_from_heap(t_heap *h, int index)
+{
+	h->size--;
+	h->heap[index] = h->heap[h->size];
+	ft_heapify_up(h, index);
+	ft_heapify_down(h, index);
 }

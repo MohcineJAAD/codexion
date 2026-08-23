@@ -27,5 +27,8 @@ t_coder	*ft_extract_min(t_heap *h);
 int		ft_init_heap(t_heap *h, int capacity, long (*cmp)(t_coder*, t_coder*));
 void	ft_insert(t_heap *h, t_coder *cd);
 void	ft_heap_destroy(t_heap *h);
+void	ft_heapify_up(t_heap *h, int i);
+void	ft_heapify_down(t_heap *h, int index);
+void	ft_remove_from_heap(t_heap *h, int index);
 
 #endif

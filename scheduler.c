@@ -42,45 +42,17 @@ void	ft_wait_cooldown(t_coder *cd, t_dongle *dg)
 	pthread_cond_timedwait(&(cd->cond), &(dg->mutex), &ts);
 }
 
-void	ft_release(t_dongle *dg)
+void	ft_release(t_dongle *dg, t_simulation *sm)
 {
-	t_coder	*next;
-
 	pthread_mutex_lock(&(dg->mutex));
 	dg->released_at = ft_get_time();
 	dg->taken = 0;
-	if (dg->heap.size > 0)
-	{
-		next = dg->heap.heap[0];
-		pthread_cond_broadcast(&(next->cond));
-	}
 	pthread_mutex_unlock(&(dg->mutex));
+	pthread_mutex_lock(&(sm->sched_mutex));
+	pthread_cond_broadcast(&(sm->sched_cond));
+	pthread_mutex_unlock(&(sm->sched_mutex));
 }
 
-int	ft_acquire(t_coder *cd, t_dongle *dg)
-{
-	pthread_mutex_lock(&(dg->mutex));
-	cd->enqueue_time = ft_get_time();
-	ft_insert(&(dg->heap), cd);
-	while (ft_is_running(cd->sim) && (ft_cooldown_remaining(dg,
-				cd->sim->dongle_cooldown) || dg->heap.heap[0] != cd || dg->taken))
-	{
-		if (dg->heap.heap[0] == cd && !(dg->taken))
-			ft_wait_cooldown(cd, dg);
-		else
-			pthread_cond_wait(&(cd->cond), &(dg->mutex));
-	}
-	if (!ft_is_running(cd->sim))
-	{
-		ft_extract_min(&(dg->heap));
-		pthread_mutex_unlock(&dg->mutex);
-		return (1);
-	}
-	ft_extract_min(&(dg->heap));
-	dg->taken = 1;
-	pthread_mutex_unlock(&dg->mutex);
-	return (0);
-}
 
 int	ft_init_scheduler(t_environment *env)
 {

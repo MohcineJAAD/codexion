@@ -23,7 +23,7 @@ int	ft_init_heap(t_heap *h, int capacity, long (*cmp)(t_coder*, t_coder*))
 	return (1);
 }
 
-static void	ft_heapify_up(t_heap *h, int i)
+void	ft_heapify_up(t_heap *h, int i)
 {
 	t_coder	*tmp;
 	int		parent;
