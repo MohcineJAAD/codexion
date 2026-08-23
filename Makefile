@@ -1,7 +1,7 @@
 NAME = codexion
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread
-SRCS = main.c init.c parsing.c routine.c time.c log.c monitor.c scheduler.c fifo.c heap.c edf.c heap_utils.c init_utils.c routine_utils.c scheduler_thread.c
+SRCS = main.c init.c parsing.c routine.c time.c log.c monitor.c monitor_utils.c scheduler.c fifo.c heap.c edf.c heap_utils.c init_utils.c routine_utils.c scheduler_thread.c
 OBJS = $(SRCS:.c=.o)
 
 

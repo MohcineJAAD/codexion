@@ -24,24 +24,6 @@ int	ft_cooldown_remaining(t_dongle *dg, int time_cooldown)
 	return (0);
 }
 
-void	ft_wait_cooldown(t_coder *cd, t_dongle *dg)
-{
-	struct timeval	tv;
-	struct timespec	ts;
-	long			remaining;
-
-	remaining = ft_cooldown_remaining(dg, cd->sim->dongle_cooldown);
-	gettimeofday(&tv, NULL);
-	ts.tv_sec = tv.tv_sec + (remaining / 1000);
-	ts.tv_nsec = (tv.tv_usec * 1000) + (remaining % 1000) * 1000 * 1000;
-	if (ts.tv_nsec >= 1000000000)
-	{
-		ts.tv_sec++;
-		ts.tv_nsec -= 1000000000;
-	}
-	pthread_cond_timedwait(&(cd->cond), &(dg->mutex), &ts);
-}
-
 void	ft_release(t_dongle *dg, t_simulation *sm)
 {
 	pthread_mutex_lock(&(dg->mutex));
@@ -52,7 +34,6 @@ void	ft_release(t_dongle *dg, t_simulation *sm)
 	pthread_cond_broadcast(&(sm->sched_cond));
 	pthread_mutex_unlock(&(sm->sched_mutex));
 }
-
 
 int	ft_init_scheduler(t_environment *env)
 {
