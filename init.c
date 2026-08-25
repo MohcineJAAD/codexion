@@ -67,33 +67,26 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 	return (1);
 }
 
-void	ft_join_threads(t_environment *env, int index)
+static void	ft_init_sync(t_simulation *sm)
 {
-	int	i;
-
-	i = 0;
-	while (i < index)
-	{
-		pthread_join(env->threads[i], NULL);
-		i++;
-	}
+	sm->start_time = ft_get_time();
+	sm->running = 1;
+	pthread_mutex_init(&(sm->running_mutex), NULL);
+	pthread_mutex_init(&(sm->print_mutex), NULL);
+	pthread_mutex_init(&(sm->stats_mutex), NULL);
+	pthread_mutex_init(&(sm->sched_mutex), NULL);
+	pthread_cond_init(&(sm->sched_cond), NULL);
 }
 
 int	ft_init_threads(t_environment *env)
 {
-	int			i;
+	int	i;
 
 	env->threads = malloc(sizeof(pthread_t) * env->sm->number_of_coders);
 	if (!env->threads)
 		return (-1);
 	i = 0;
-	env->sm->start_time = ft_get_time();
-	env->sm->running = 1;
-	pthread_mutex_init(&(env->sm->running_mutex), NULL);
-	pthread_mutex_init(&(env->sm->print_mutex), NULL);
-	pthread_mutex_init(&(env->sm->stats_mutex), NULL);
-	pthread_mutex_init(&(env->sm->sched_mutex), NULL);
-	pthread_cond_init(&(env->sm->sched_cond), NULL);
+	ft_init_sync(env->sm);
 	while (i < env->sm->number_of_coders)
 	{
 		env->coders[i].last_compile_start = ft_get_time();

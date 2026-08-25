@@ -50,12 +50,24 @@ static int	ft_check_burnout(t_environment *env)
 	return (-1);
 }
 
+static void	ft_monitor_wait(t_environment *env, long deadline)
+{
+	long			wait_ms;
+	struct timespec	ts;
+
+	wait_ms = deadline - ft_get_time();
+	if (wait_ms < 0)
+		wait_ms = 0;
+	ft_timespec_from_ms(&ts, wait_ms);
+	pthread_mutex_lock(&(env->sm->sched_mutex));
+	pthread_cond_timedwait(&(env->sm->sched_cond),
+		&(env->sm->sched_mutex), &ts);
+	pthread_mutex_unlock(&(env->sm->sched_mutex));
+}
+
 void	*ft_monitor(void *arg)
 {
 	t_environment	*env;
-	long			earliest_dl;
-	long			wait_ms;
-	struct timespec	ts;
 	int				burned_id;
 
 	env = (t_environment *)arg;
@@ -63,14 +75,7 @@ void	*ft_monitor(void *arg)
 	{
 		if (ft_all_compiled(env))
 			return (ft_shutdown(env), NULL);
-		earliest_dl = ft_find_earliest_deadline(env);
-		wait_ms = earliest_dl - ft_get_time();
-		if (wait_ms < 0)
-			wait_ms = 0;
-		ft_timespec_from_ms(&ts, wait_ms);
-		pthread_mutex_lock(&(env->sm->sched_mutex));
-		pthread_cond_timedwait(&(env->sm->sched_cond), &(env->sm->sched_mutex), &ts);
-		pthread_mutex_unlock(&(env->sm->sched_mutex));
+		ft_monitor_wait(env, ft_find_earliest_deadline(env));
 		burned_id = ft_check_burnout(env);
 		if (burned_id != -1)
 		{
@@ -79,5 +84,4 @@ void	*ft_monitor(void *arg)
 			return (NULL);
 		}
 	}
-	return (NULL);
 }

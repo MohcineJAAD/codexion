@@ -92,13 +92,13 @@ int		ft_init_edf(t_environment *env);
 int		ft_cooldown_remaining(t_dongle *dg, int time_cooldown);
 void	ft_wait_cooldown(t_coder *cd, t_dongle *dg);
 void	ft_init_dongles(t_dongle *dg, int index);
-void    *ft_scheduler(void *arg);
+void	*ft_scheduler(void *arg);
 void	ft_join_heap(t_coder *cd);
 int		ft_wait_to_can_compile(t_coder *cd);
 long	ft_get_deadline(t_coder *cd);
 long	ft_find_earliest_deadline(t_environment *env);
 void	ft_timespec_from_ms(struct timespec *ts, long ms_from_now);
-int	ft_is_burnout(t_coder *cd);
-int	ft_is_compile_max(t_coder *cd);
+int		ft_is_burnout(t_coder *cd);
+int		ft_is_compile_max(t_coder *cd);
 
 #endif
