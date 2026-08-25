@@ -55,7 +55,6 @@ int	ft_init_coders(t_coder **coder, t_dongle **dg, t_simulation *sm)
 	{
 		next = (index + 1) % sm->number_of_coders;
 		ft_init_dongles(&((*dg)[index]), index);
-		pthread_cond_init(&((*coder)[index].cond), NULL);
 		(*coder)[index].id = index + 1;
 		(*coder)[index].sim = sm;
 		(*coder)[index].compile_count = 0;

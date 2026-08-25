@@ -60,7 +60,6 @@ typedef struct s_coder
 	t_dongle		*dongle_left;
 	t_dongle		*dongle_right;
 	t_simulation	*sim;
-	pthread_cond_t	cond;
 }	t_coder;
 
 typedef struct s_environment

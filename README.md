@@ -1,3 +1,6 @@
+*This project has been created as part of the 42 curriculum by mjaad.*
+*This project has been created as part of the 42 curriculum by mjaad.*
+ 
 # Codexion
  
 ## Description
@@ -8,10 +11,10 @@ Each coder cycles through three phases: **compiling**, **debugging**, and **refa
  
 A coder who fails to start compiling within `time_to_burnout` milliseconds of their last compile (or of the simulation start) **burns out**, which stops the whole simulation. The simulation also stops successfully once every coder has compiled at least `number_of_compiles_required` times.
  
-Two scheduling policies decide who gets a contested dongle:
+Two scheduling policies decide who gets served next when multiple coders are waiting:
 - **FIFO** — served in strict arrival order.
 - **EDF** (Earliest Deadline First) — served by closest burnout deadline (`last_compile_start + time_to_burnout`), with coder ID as a tie-breaker.
-The goal of the project is to build correct, deadlock-free, starvation-free concurrent code in C using only pthreads primitives — no higher-level concurrency libraries, no libft, and a hand-rolled priority queue (heap) to drive the scheduling.
+Dongle pairs are granted **atomically** by a dedicated scheduler thread, rather than coders acquiring their two dongles one at a time. The goal of the project is to build correct, deadlock-free, starvation-free concurrent code in C using only pthreads primitives — no higher-level concurrency libraries, no libft, and a hand-rolled priority queue (heap) to drive the scheduling.
  
 ## Instructions
  
@@ -57,25 +60,26 @@ timestamp_in_ms coder_id action
  
 Actions: `has taken a dongle`, `is compiling`, `is debugging`, `is refactoring`, `burned out`. Each state change is logged exactly once, in serialized order, with no interleaving between lines.
  
+## Architecture overview
+ 
+Three kinds of threads run concurrently:
+ 
+- **Coder threads** (one per coder) — cycle through compile/debug/refactor. To compile, a coder registers itself on a single shared priority queue and sleeps until granted both dongles.
+- **Scheduler thread** — the only thread that ever marks a dongle as taken. It repeatedly scans the shared queue and grants any coder both of its dongles atomically, in one step, whenever both are free and out of cooldown.
+- **Monitor thread** — watches every coder's burnout deadline and stops the simulation the moment one is missed, or once every coder has compiled enough times.
 ## Blocking cases handled
  
-### Deadlock prevention (Coffman's conditions)
-The classic deadlock scenario — every coder holding their left dongle and waiting forever on the right one — is a circular wait, one of Coffman's four necessary conditions for deadlock. It's broken by making the last coder (`id == number_of_coders`) acquire dongles in reverse order (right, then left). This removes the cycle in the wait-for graph: it's no longer possible for every coder to simultaneously hold one dongle and wait on the next.
+### Deadlock prevention
+The classic Dining Philosophers deadlock — every coder holding one dongle and waiting forever on the other — requires a **hold-and-wait** situation: acquiring one resource while blocked waiting for a second. This project removes hold-and-wait entirely rather than working around it. A coder never holds a single dongle in isolation: the scheduler thread grants both dongles to a coder in one atomic step (`ft_can_take_dongles` checks both are free before `ft_get_dongles` marks both as taken, under a single lock). It is structurally impossible for a coder to hold exactly one dongle while waiting on the other, so the circular-wait condition (one of Coffman's four necessary conditions for deadlock) can never arise.
  
-### Starvation prevention (FIFO)
-Coders are served strictly in arrival order via a min-heap ordered by `enqueue_time`. The coder who has been waiting longest is always at `heap[0]` and always served next — no coder can be skipped indefinitely.
- 
-### Starvation prevention (EDF)
-The coder closest to burnout is always served first. Because a coder's deadline gets more urgent the longer it waits, it naturally rises to the front of the queue over time. Liveness (no starvation) is guaranteed as long as the given parameters are feasible for the ring topology.
+### Starvation prevention (FIFO / EDF)
+Both scheduling policies are implemented as comparator functions on a single min-heap shared by all coders. Under FIFO, the coder that has waited longest (`enqueue_time`) is always tried first. Under EDF, the coder closest to burnout (`last_compile_start + time_to_burnout`) is always tried first, with coder ID breaking ties. Because the scheduler scans the **entire** queue on every pass — not just the front — a coder blocked only by its own dongles' cooldown never blocks the coder behind it in priority order from being served in the meantime.
  
 ### Cooldown handling
-After release, a dongle is unavailable until `dongle_cooldown` ms have passed. A coder at the front of the queue (`heap[0]`) who finds the dongle still cooling down must not call `pthread_cond_wait`, since no other thread will signal it once the cooldown naturally expires — nobody else holds the dongle. Instead, `pthread_cond_timedwait` is used with a timeout equal to the exact remaining cooldown, so the coder wakes itself up precisely when the dongle becomes usable.
- 
-### Double-acquisition race
-A `taken` flag on each dongle prevents a second coder from grabbing a dongle the instant the first coder is dequeued from the heap but hasn't yet updated shared state, closing a race window that plain heap ordering alone doesn't cover.
+After release, a dongle is unavailable until `dongle_cooldown` ms have passed (`ft_cooldown_remaining`). The scheduler thread never busy-waits on cooldown expiry: it computes the soonest moment any dongle currently cooling down will become available (`ft_earliest_dongle_free`) and sleeps exactly that long via `pthread_cond_timedwait`, waking itself up precisely when a retry might succeed — without relying on an external signal that a passive cooldown expiry can't provide.
  
 ### Precise burnout detection
-A dedicated monitor thread polls every coder's `last_compile_start` every 1ms. As soon as `ft_get_time() - last_compile_start > time_to_burnout`, the burnout is logged and the simulation shuts down. The 1ms polling interval keeps the log comfortably within the required 10ms detection window.
+Rather than polling on a fixed interval, the monitor thread computes the single earliest burnout deadline across all coders (`ft_find_earliest_deadline`) and sleeps exactly until that instant via `pthread_cond_timedwait`. This keeps burnout detection accurate to well within the required 10ms window while avoiding unnecessary wakeups when no coder is close to its deadline.
  
 ### Log serialization
 Every log line goes through `ft_print_log`, which locks a single `print_mutex` around the `printf` call. This guarantees two messages can never interleave on the same line, no matter how many threads log concurrently.
@@ -83,27 +87,28 @@ Every log line goes through `ft_print_log`, which locks a single `print_mutex` a
 ## Thread synchronization mechanisms
  
 ### `pthread_mutex_t` — per-dongle mutex
-Each dongle owns its own mutex, held while a coder inserts itself into that dongle's priority queue, checks cooldown state, or extracts itself once granted. This confines contention to a single dongle instead of serializing the whole simulation, and prevents races on the heap and on `released_at`.
+Each dongle owns its own mutex, guarding only that dongle's `taken` flag and `released_at` timestamp. Keeping this fine-grained (one lock per dongle, instead of one lock for all dongles) means releasing dongle A never blocks a thread that only needs to touch dongle B — contention stays local to whichever dongle is actually contested.
+ 
+### `pthread_mutex_t` + `pthread_cond_t` — scheduler mutex and condition
+`sched_mutex` protects the single shared priority queue and each coder's `can_compile` flag. `sched_cond` is the channel coders sleep on while waiting to be granted dongles, and the channel the scheduler thread itself sleeps on while waiting for new arrivals, releases, or cooldown expiries. A coder joining the queue, a dongle being released, and a grant being made all broadcast on `sched_cond`, so the scheduler thread never misses a state change it should react to.
+ 
+### `pthread_mutex_t` — stats mutex
+`last_compile_start` and `compile_count` are written by a coder's own thread and read by the monitor thread computing deadlines. `stats_mutex` protects every access to both, preventing a torn or stale read of a burnout deadline.
  
 ### `pthread_mutex_t` — print mutex
 A single `print_mutex` in `t_simulation` serializes every `printf` call across all coder threads and the monitor thread, guaranteeing clean, non-interleaved log lines.
  
 ### `pthread_mutex_t` — running mutex
-The `running` flag is written once by the monitor and read continuously by every coder thread. `running_mutex` protects all reads and writes to it, preventing a torn or stale read from letting a coder continue past shutdown.
+The `running` flag is written once by the monitor and read continuously by every coder thread. `running_mutex` protects all reads and writes to it, preventing a stale read from letting a coder continue past shutdown.
  
-### `pthread_cond_t` — per-coder condition variable
-Each coder has its own `cond`. When a coder isn't at `heap[0]` for its dongle, it waits on this condition variable, releasing the dongle mutex while asleep. When a dongle is released, the coder now at `heap[0]` is broadcast-woken to retry. On shutdown, the monitor broadcasts every coder's condition variable so no thread is left blocked forever.
+### `while`, not `if`, around every condition wait
+Every `pthread_cond_wait` / `pthread_cond_timedwait` in this project is wrapped in a `while` loop re-checking the actual condition, never a plain `if`. This guards against two distinct issues: spurious wakeups (POSIX permits a condition wait to return without any real signal ever being sent) and broadcasts intended for a different waiter (since `sched_cond` is shared by every coder, a broadcast wakes all of them, and each one must re-check its own `can_compile` flag before proceeding).
  
-`pthread_cond_broadcast` is used instead of `pthread_cond_signal` deliberately: it wakes every waiter, but the `while` loop around the wait re-checks `heap[0]` each time, so only the coder the scheduler actually intends to grant the dongle to proceeds — the scheduling *policy*, not the kernel's wakeup order, decides who gets in.
- 
-### `pthread_cond_timedwait` — cooldown-aware waiting
-When the head-of-queue coder is blocked only by cooldown (not by another coder ahead of it), `pthread_cond_timedwait` is used with a deadline set to the exact cooldown expiry. This avoids the coder oversleeping (which would happen with a plain sleep) or hanging forever (which would happen with `pthread_cond_wait`, since nothing signals a cooldown expiry).
+### `pthread_cond_broadcast`, not `pthread_cond_signal`
+The scheduler always broadcasts rather than signals, because multiple coders share `sched_cond` for entirely different reasons (one may have just been granted dongles, another may simply need to notice a new queue state). Broadcasting wakes every waiter; the `while` re-check ensures only the coder actually intended for a grant proceeds, while every other coder safely goes back to sleep.
  
 ### Monitor thread
-A separate thread runs `ft_monitor`, polling burnout and completion conditions independently of the coder threads. On detecting either, it takes `running_mutex`, flips `running` to 0, and broadcasts every coder's condition variable — this is the single, thread-safe hand-off point between "simulation running" and "simulation stopping" that every other thread observes via `ft_is_running`.
- 
-### Race condition example
-Without `running_mutex`, a coder thread could read `running` mid-write by the monitor and observe a torn value on some architectures, or simply race on visibility without a memory barrier — potentially compiling one extra unnecessary cycle after shutdown was requested. Locking both the write (in the monitor) and every read (in `ft_is_running`) around the same mutex enforces a consistent, single view of that flag across threads.
+A separate thread runs `ft_monitor`, sleeping until the earliest burnout deadline or until woken early, then checking every coder for burnout and for overall completion. On detecting either, it takes `running_mutex`, flips `running` to 0, and broadcasts `sched_cond` — this is the single, thread-safe hand-off point between "simulation running" and "simulation stopping" that every other thread observes via `ft_is_running`.
 
 ## Resources
 
